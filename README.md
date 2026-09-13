@@ -7,6 +7,7 @@ Execute Luau/Lua scripts from VSCode directly in your Roblox executor (built for
 - A status bar button in the **bottom left** of VSCode, visible whenever a `.lua` / `.luau` file is open.
 - While no executor is connected the button reads **Not Connected**. Click it to open a setup menu:
   - **Auto-Execute** - scans `%LOCALAPPDATA%` (bounded) for folders named `Auto-Execute` (or the names in the `vscExecute.autoExecFolderNames` setting) and installs the connect script into every match.
+  - **Uninstall Auto-Execute** - removes the installed connect script (`VSCE-Execute.luau`) from every auto-exec folder it finds (it stops running the next time the game loads).
   - **Copy Connect Script** - copies the connect script to your clipboard so you can place it manually.
   - **Output** - toggle (off by default) whether the connect script prints its own status/error messages (`[VSC Execute] Connected to VSCode...`, `Failed to compile script...`, etc.) in the executor console. Applies immediately to connected executors - no reinstall needed. This never affects `print`/`warn` calls in scripts you run.
   - **Notifications** - toggle (on by default) the VSCode toast notifications that appear bottom-right (connected / disconnected / sent events).

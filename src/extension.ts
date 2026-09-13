@@ -74,7 +74,7 @@ export function activate(context: vscode.ExtensionContext): void {
     notify(() => vscode.window.showInformationMessage(`VSC Execute: Sent "${base}" to executor.`));
   };
 
-  type SetupAction = 'auto-exec' | 'copy' | 'toggle-output' | 'toggle-notifications';
+  type SetupAction = 'auto-exec' | 'uninstall-auto-exec' | 'copy' | 'toggle-output' | 'toggle-notifications';
 
   const showSetupMenu = async (): Promise<void> => {
     const outputOn = cfg().get<boolean>('showOutput', false);
@@ -85,6 +85,11 @@ export function activate(context: vscode.ExtensionContext): void {
         action: 'auto-exec',
         label: '$(plug) Auto-Execute',
         description: 'Scan LocalAppData for auto-exec folders and install the connect script',
+      },
+      {
+        action: 'uninstall-auto-exec',
+        label: '$(trash) Uninstall Auto-Execute',
+        description: 'Remove the installed connect script (VSCE-Execute.luau) from every auto-exec folder',
       },
       {
         action: 'copy',
@@ -123,6 +128,9 @@ export function activate(context: vscode.ExtensionContext): void {
         break;
       case 'auto-exec':
         await installAutoExec();
+        break;
+      case 'uninstall-auto-exec':
+        await uninstallAutoExec();
         break;
       case 'copy':
         await copyConnectScript();
@@ -177,6 +185,40 @@ export function activate(context: vscode.ExtensionContext): void {
       ' Join a Roblox game and the executor will connect automatically.';
     const action = await notify(() => vscode.window.showInformationMessage(msg, 'Copy Connect Script'));
     if (action === 'Copy Connect Script') await copyConnectScript();
+  };
+
+  const uninstallAutoExec = async (): Promise<void> => {
+    const names = cfg().get<string[]>('autoExecFolderNames', DEFAULT_AUTO_EXEC_NAMES);
+
+    const folders = findAutoExecFolders(names).filter((folder) =>
+      fs.existsSync(path.join(folder, CONNECT_FILE_NAME)),
+    );
+    if (folders.length === 0) {
+      notify(() => vscode.window.showInformationMessage('VSC Execute: No installed connect script found.'));
+      return;
+    }
+
+    let removed = 0;
+    for (const folder of folders) {
+      try {
+        fs.unlinkSync(path.join(folder, CONNECT_FILE_NAME));
+        removed += 1;
+      } catch {
+        /* skip unwritable folders */
+      }
+    }
+
+    if (removed === 0) {
+      notify(() => vscode.window.showErrorMessage('VSC Execute: Could not remove the connect script.'));
+      return;
+    }
+
+    const where = removed === 1 ? '1 folder' : `${removed} folders`;
+    notify(() =>
+      vscode.window.showInformationMessage(
+        `VSC Execute: Connect script removed from ${where}. It stops running the next time the game loads.`,
+      ),
+    );
   };
 
   const copyConnectScript = async (): Promise<void> => {

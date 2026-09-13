@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.2.3
+
+- **Uninstall Auto-Execute** menu action: removes the installed connect script (`VSCE-Execute.luau`) from every auto-exec folder it finds.
+- Connect script no longer prints the `Connected to VSCode on ws://...` line eagerly. It waits (~0.5s) for the extension to push the live output setting, so a stale script with `OUTPUT = true` baked in stays silent when the Output toggle is off. Falls back to the baked value only if the extension never replies.
+- Connect script's `Hello` message is now a single-line string (no multi-line concatenation).
+
 ## 0.2.2
 
 - **Output toggle now applies live.** The extension sends a control frame over the WebSocket the moment `vscExecute.showOutput` changes (and again on every connect/reconnect), so the connect script's own `[VSC Execute] ...` messages turn on/off instantly - even for scripts installed while Output was On. Old pre-`0.2.2` connect scripts are never sent control frames, so they keep their baked-in behavior until you reinstall/copy the script once.

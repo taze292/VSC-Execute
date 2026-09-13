@@ -14,6 +14,7 @@ local OUTPUT = {OUTPUT}
 local CONTROL_PREFIX = string.char(0) .. "VSCE:"
 local RECONNECT_DELAY = 3
 local connecting = false
+local onOutputChanged = nil
 
 local function log(...)
     if OUTPUT then
@@ -36,6 +37,9 @@ local function handleMessage(script)
         local key, value = script:sub(#CONTROL_PREFIX + 1):match("^(%w+)=([%w+-]+)$")
         if key == "output" then
             OUTPUT = value == "true"
+            if onOutputChanged then
+                onOutputChanged()
+            end
         end
         return
     end
@@ -71,24 +75,35 @@ local function createConnection()
     end
 
     connecting = true
+
+    local announcedConnect = false
+    local function announceConnected()
+        if not announcedConnect and OUTPUT then
+            announcedConnect = true
+            log("[VSC Execute] Connected to VSCode on " .. URL)
+        end
+    end
+
+    onOutputChanged = announceConnected
     socket.OnMessage:Connect(handleMessage)
 
     socket.OnClose:Connect(function()
         connecting = false
+        onOutputChanged = nil
         task.spawn(function()
             task.wait(RECONNECT_DELAY)
             createConnection()
         end)
     end)
 
-    log("[VSC Execute] Connected to VSCode on " .. URL)
+    task.spawn(function()
+        task.wait(0.5)
+        -- If the extension never pushes its output preference, fall back to the baked value.
+        announceConnected()
+    end)
 
     pcall(function()
-        socket:Send(
-            "[VSC Execute] Hello from "
-                .. tostring(identifyexecutor())
-                .. "\n[VSCE-PROTO] 2"
-        )
+        socket:Send("[VSC Execute] Hello from " .. tostring(identifyexecutor()) .. "\\n[VSCE-PROTO] 2")
     end)
 
     return true
