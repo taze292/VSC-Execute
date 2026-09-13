@@ -8,6 +8,8 @@ Execute Luau/Lua scripts from VSCode directly in your Roblox executor (built for
 - While no executor is connected the button reads **Not Connected**. Click it to open a setup menu:
   - **Auto-Execute** - scans `%LOCALAPPDATA%` (bounded) for folders named `Auto-Execute` (or the names in the `vscExecute.autoExecFolderNames` setting) and installs the connect script into every match.
   - **Copy Connect Script** - copies the connect script to your clipboard so you can place it manually.
+  - **Output** - toggle (on by default) whether the connect script prints status/error messages in the executor console. Turn it off to keep the executor silent and cut down on detectable prints.
+  - **Notifications** - toggle (on by default) the VSCode toast notifications that appear bottom-right (connected / disconnected / sent events).
 - Once the executor connects, the button reads **Execute** (next to a lazy-loading **Execute** icon). Click it to send the current file's contents over the WebSocket; the executor `loadstring`s and runs it.
 
 ## How it works
@@ -30,6 +32,8 @@ To build a `.vsix`:
 npm run package
 ```
 
+> A prebuilt `vsc-execute-<version>.vsix` is committed in the repository root, so you can grab it and use `Extensions: Install from VSIX...` instead of building yourself.
+
 ## Usage
 
 1. Open a `.lua` / `.luau` file. The status bar button appears (bottom left, shows **Not Connected**).
@@ -45,6 +49,8 @@ npm run package
 | --- | --- | --- |
 | `vscExecute.port` | `29999` | Port the local WebSocket server listens on. If occupied, the next free port up to +5 is used. Update the connect script (reinstall/copy) after changing it. |
 | `vscExecute.autoExecFolderNames` | `["Auto-Execute", ...]` | Folder names (case-insensitive) matched while scanning `%LOCALAPPDATA%`. |
+| `vscExecute.showOutput` | `true` | Whether the connect script prints status/error messages in the executor console. Toggle from the setup menu. Off keeps the executor silent. |
+| `vscExecute.showNotifications` | `true` | Whether VSCode shows toast notifications (bottom-right) for connect/disconnect and sends. Toggle from the setup menu. |
 
 ## Notes & security
 

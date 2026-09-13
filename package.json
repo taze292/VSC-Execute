@@ -2,9 +2,13 @@
   "name": "vsc-execute",
   "displayName": "VSC Execute",
   "description": "Execute Luau/Lua scripts in your Roblox executor (Potassium) from VSCode over a local WebSocket.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "vsc-execute",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/taze292/VSC-Execute.git"
+  },
   "preview": true,
   "engines": {
     "vscode": "^1.85.0"
@@ -61,6 +65,16 @@
             "Autoexecute"
           ],
           "description": "Folder names (checked case-insensitively) to scan for inside %LOCALAPPDATA% when installing the connect script."
+        },
+        "vscExecute.showOutput": {
+          "type": "boolean",
+          "default": true,
+          "description": "Allow the connect script to print status and error messages in the executor console (\"Output\"). Turn off to keep the executor silent and reduce detection risk."
+        },
+        "vscExecute.showNotifications": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show VSCode toast notifications (bottom-right) for connect/disconnect and script-execution events."
         }
       }
     }

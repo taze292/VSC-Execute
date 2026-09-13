@@ -4,11 +4,29 @@ import * as path from 'path';
 
 export const DEFAULT_AUTO_EXEC_NAMES = [
   'Auto-Execute',
-  'Auto Execute',
-  'AutoExec',
   'Auto-Exec',
+  'Auto Execute',
+  'Auto Exec',
+  'AutoExec',
   'Auto-Execution',
+  'Autoexecution',
   'Autoexecute',
+  'AutoExecute',
+  'Auto_Execute',
+  'Autoexec Folder',
+  'Auto Exec Folder',
+  'Auto Execute Folder',
+  'Auto Execution',
+  'Auto Load',
+  'Autoload',
+  'Auto Run',
+  'Autorun',
+  'Auto Start',
+  'Autostart',
+  'Exec',
+  'Executions',
+  'Executor',
+  'Executor Scripts',
 ];
 
 const SKIPPED_DIRS = new Set([

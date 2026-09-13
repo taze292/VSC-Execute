@@ -13,12 +13,19 @@ let connected = false;
 let executorName: string | undefined;
 let seenFirstStatus = false;
 
+const cfg = (): vscode.WorkspaceConfiguration => vscode.workspace.getConfiguration('vscExecute');
+
+function notify<T>(code: () => Thenable<T> | undefined): Thenable<T> | undefined {
+  if (!cfg().get<boolean>('showNotifications', true)) return undefined;
+  return code();
+}
+
 export function activate(context: vscode.ExtensionContext): void {
   statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 5);
   statusBar.command = 'vscExecute.click';
 
   executeServer.onError = (err) => {
-    void vscode.window.showErrorMessage(`VSC Execute: WebSocket server error: ${err.message}`);
+    notify(() => vscode.window.showErrorMessage(`VSC Execute: WebSocket server error: ${err.message}`));
   };
 
   executeServer.onStatusChange = (status) => {
@@ -30,17 +37,16 @@ export function activate(context: vscode.ExtensionContext): void {
       seenFirstStatus = true;
     } else if (connected && !wasConnected) {
       const who = executorName ? ` (${executorName})` : '';
-      void vscode.window.showInformationMessage(`VSC Execute: Executor connected${who}.`);
+      notify(() => vscode.window.showInformationMessage(`VSC Execute: Executor connected${who}.`));
     } else if (!connected && wasConnected) {
-      void vscode.window.showWarningMessage('VSC Execute: Executor disconnected.');
+      notify(() => vscode.window.showWarningMessage('VSC Execute: Executor disconnected.'));
     }
 
     updateStatusBar();
   };
 
   const startServer = (): void => {
-    const port = vscode.workspace.getConfiguration('vscExecute').get<number>('port', 29999);
-    executeServer.start(port);
+    executeServer.start(cfg().get<number>('port', 29999));
   };
 
   const executeActiveFile = async (): Promise<void> => {
@@ -49,7 +55,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
     const code = editor.document.getText();
     if (code.trim().length === 0) {
-      void vscode.window.showWarningMessage('VSC Execute: The active file is empty.');
+      notify(() => vscode.window.showWarningMessage('VSC Execute: The active file is empty.'));
       return;
     }
 
@@ -59,48 +65,83 @@ export function activate(context: vscode.ExtensionContext): void {
     }
 
     const base = path.basename(editor.document.fileName);
-    void vscode.window.showInformationMessage(`VSC Execute: Sent "${base}" to executor.`);
+    notify(() => vscode.window.showInformationMessage(`VSC Execute: Sent "${base}" to executor.`));
   };
 
+  type SetupAction = 'auto-exec' | 'copy' | 'toggle-output' | 'toggle-notifications';
+
   const showSetupMenu = async (): Promise<void> => {
-    const choice = await vscode.window.showQuickPick(
-      [
-        {
-          label: '$(plug) Auto-Execute',
-          description: 'Scan LocalAppData for auto-exec folders and install the connect script',
-        },
-        {
-          label: '$(copy) Copy Connect Script',
-          description: 'Copy the connect script to the clipboard for manual setup',
-        },
-      ],
-      { placeHolder: 'VSC Execute: No executor connected - how do you want to set up the connection?' },
-    );
+    const outputOn = cfg().get<boolean>('showOutput', true);
+    const notifOn = cfg().get<boolean>('showNotifications', true);
+
+    const items: Array<(vscode.QuickPickItem & { action: SetupAction })> = [
+      {
+        action: 'auto-exec',
+        label: '$(plug) Auto-Execute',
+        description: 'Scan LocalAppData for auto-exec folders and install the connect script',
+      },
+      {
+        action: 'copy',
+        label: '$(copy) Copy Connect Script',
+        description: 'Copy the connect script to the clipboard for manual setup',
+      },
+      {
+        action: 'toggle-output',
+        label: outputOn ? '$(check) Output: On' : '$(mute) Output: Off',
+        description: outputOn
+          ? 'Connect script logs status/errors in the executor console. Toggle off to keep it silent.'
+          : 'Connect script stays silent (no prints in the executor console). Toggle on to log again.',
+      },
+      {
+        action: 'toggle-notifications',
+        label: notifOn ? '$(check) Notifications: On' : '$(mute) Notifications: Off',
+        description: notifOn
+          ? 'Show VSCode notifications (bottom-right toasts) for connect/disconnect and sends.'
+          : 'Hide VSCode notifications (bottom-right toasts).',
+      },
+    ];
+
+    const choice = await vscode.window.showQuickPick(items, {
+      placeHolder: 'VSC Execute: No executor connected - how do you want to set up the connection?',
+    });
     if (!choice) return;
 
-    if (choice.label.includes('Auto-Execute')) {
-      await installAutoExec();
-    } else {
-      await copyConnectScript();
+    switch (choice.action) {
+      case 'toggle-output':
+        await cfg().update('showOutput', !outputOn, vscode.ConfigurationTarget.Global);
+        await showSetupMenu();
+        break;
+      case 'toggle-notifications':
+        await cfg().update('showNotifications', !notifOn, vscode.ConfigurationTarget.Global);
+        await showSetupMenu();
+        break;
+      case 'auto-exec':
+        await installAutoExec();
+        break;
+      case 'copy':
+        await copyConnectScript();
+        break;
     }
   };
 
   const installAutoExec = async (): Promise<void> => {
-    const cfg = vscode.workspace.getConfiguration('vscExecute');
-    const names = cfg.get<string[]>('autoExecFolderNames', DEFAULT_AUTO_EXEC_NAMES);
-    const port = cfg.get<number>('port', 29999);
+    const names = cfg().get<string[]>('autoExecFolderNames', DEFAULT_AUTO_EXEC_NAMES);
+    const port = cfg().get<number>('port', 29999);
+    const output = cfg().get<boolean>('showOutput', true);
 
     const folders = findAutoExecFolders(names);
     if (folders.length === 0) {
-      const action = await vscode.window.showWarningMessage(
-        'VSC Execute: No auto-exec folders found in LocalAppData.',
-        'Copy Connect Script',
+      const action = await notify(() =>
+        vscode.window.showWarningMessage(
+          'VSC Execute: No auto-exec folders found in LocalAppData.',
+          'Copy Connect Script',
+        ),
       );
       if (action === 'Copy Connect Script') await copyConnectScript();
       return;
     }
 
-    const script = getConnectScript(port);
+    const script = getConnectScript(port, output);
     let installed = 0;
     for (const folder of folders) {
       try {
@@ -112,9 +153,11 @@ export function activate(context: vscode.ExtensionContext): void {
     }
 
     if (installed === 0) {
-      const action = await vscode.window.showErrorMessage(
-        'VSC Execute: Could not write to any of the found folders.',
-        'Copy Connect Script',
+      const action = await notify(() =>
+        vscode.window.showErrorMessage(
+          'VSC Execute: Could not write to any of the found folders.',
+          'Copy Connect Script',
+        ),
       );
       if (action === 'Copy Connect Script') await copyConnectScript();
       return;
@@ -126,14 +169,15 @@ export function activate(context: vscode.ExtensionContext): void {
       `VSC Execute: Connect script installed into ${where}.` +
       (skipped > 0 ? ` Skipped ${skipped} folder(s).` : '') +
       ' Join a Roblox game and the executor will connect automatically.';
-    const action = await vscode.window.showInformationMessage(msg, 'Copy Connect Script');
+    const action = await notify(() => vscode.window.showInformationMessage(msg, 'Copy Connect Script'));
     if (action === 'Copy Connect Script') await copyConnectScript();
   };
 
   const copyConnectScript = async (): Promise<void> => {
-    const port = vscode.workspace.getConfiguration('vscExecute').get<number>('port', 29999);
-    await vscode.env.clipboard.writeText(getConnectScript(port));
-    void vscode.window.showInformationMessage('VSC Execute: Connect script copied to clipboard.');
+    const port = cfg().get<number>('port', 29999);
+    const output = cfg().get<boolean>('showOutput', true);
+    await vscode.env.clipboard.writeText(getConnectScript(port, output));
+    notify(() => vscode.window.showInformationMessage('VSC Execute: Connect script copied to clipboard.'));
   };
 
   const isLuauFile = (doc: vscode.TextDocument): boolean => {

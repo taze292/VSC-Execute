@@ -10,8 +10,21 @@
 
 local PORT = 29999
 local URL = "ws://127.0.0.1:" .. tostring(PORT)
+local OUTPUT = true
 local RECONNECT_DELAY = 3
 local connecting = false
+
+local function log(...)
+    if OUTPUT then
+        print(...)
+    end
+end
+
+local function logWarn(...)
+    if OUTPUT then
+        warn(...)
+    end
+end
 
 local function handleMessage(script)
     if type(script) ~= "string" or #script == 0 then
@@ -20,13 +33,13 @@ local function handleMessage(script)
 
     local chunk, compileError = loadstring(script)
     if not chunk then
-        warn("[VSC Execute] Failed to compile script: " .. tostring(compileError))
+        logWarn("[VSC Execute] Failed to compile script: " .. tostring(compileError))
         return
     end
 
     local ok, runError = xpcall(chunk, debug.traceback)
     if not ok then
-        warn("[VSC Execute] Script runtime error: " .. tostring(runError))
+        logWarn("[VSC Execute] Script runtime error: " .. tostring(runError))
     end
 end
 
@@ -55,7 +68,7 @@ local function createConnection()
         end)
     end)
 
-    print("[VSC Execute] Connected to VSCode on " .. URL)
+    log("[VSC Execute] Connected to VSCode on " .. URL)
 
     pcall(function()
         socket:Send("[VSC Execute] Hello from " .. tostring(identifyexecutor()))
@@ -71,5 +84,5 @@ task.spawn(function()
         end
         task.wait(2)
     end
-    warn("[VSC Execute] Could not reach VSCode at " .. URL .. ". Start VSCode with the VSC Execute extension.")
+    logWarn("[VSC Execute] Could not reach VSCode at " .. URL .. ". Start VSCode with the VSC Execute extension.")
 end)
