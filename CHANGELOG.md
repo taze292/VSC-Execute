@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.2.9
+
+- README now leads with a copy-paste **Install** section: one command (`code --install-extension vsc-execute-0.2.9.vsix`) from the repo root. No functionality changes.
+
 ## 0.2.8
 
 - **New settings button when connected.** When an executor is connected and a Lua/Luau file is open, a **gear button** appears in the status bar (next to Execute). Click it to open the setup menu — Auto-Execute, Uninstall, Copy Connect Script, Output and Notifications toggles — without disconnecting. Toggles apply immediately; reconnect not needed. When not connected the gear button is hidden and the main button still opens the menu as before.

@@ -2,6 +2,16 @@
 
 Execute Luau/Lua scripts from VSCode directly in your Roblox executor over a local WebSocket. Built for [Potassium](https://docs.potassium.pro/), works with any executor that supports `WebSocket.connect`.
 
+## Install
+
+Open a terminal in the folder containing the prebuilt VSIX (repo root) and run:
+
+```powershell
+code --install-extension vsc-execute-0.2.9.vsix
+```
+
+That's it — reload VS Code if prompted. (Or install manually: Extensions → **...** → **Install from VSIX...** → pick the file.)
+
 ## Requirements
 
 - **Windows** 10 or 11.
