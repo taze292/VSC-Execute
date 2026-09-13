@@ -15,6 +15,8 @@ let seenFirstStatus = false;
 
 const cfg = (): vscode.WorkspaceConfiguration => vscode.workspace.getConfiguration('vscExecute');
 
+const outputOn = (): boolean => cfg().get<boolean>('showOutput', false);
+
 function notify<T>(code: () => Thenable<T> | undefined): Thenable<T> | undefined {
   if (!cfg().get<boolean>('showNotifications', true)) return undefined;
   return code();
@@ -40,6 +42,10 @@ export function activate(context: vscode.ExtensionContext): void {
       notify(() => vscode.window.showInformationMessage(`VSC Execute: Executor connected${who}.`));
     } else if (!connected && wasConnected) {
       notify(() => vscode.window.showWarningMessage('VSC Execute: Executor disconnected.'));
+    }
+
+    if (status.connected) {
+      executeServer.sendControl('output', outputOn() ? 'true' : 'false');
     }
 
     updateStatusBar();
@@ -221,6 +227,9 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.window.onDidChangeActiveTextEditor(() => updateStatusBar()),
     vscode.workspace.onDidChangeConfiguration((event) => {
       if (event.affectsConfiguration('vscExecute.port')) startServer();
+      if (event.affectsConfiguration('vscExecute.showOutput')) {
+        executeServer.sendControl('output', outputOn() ? 'true' : 'false');
+      }
       updateStatusBar();
     }),
   );

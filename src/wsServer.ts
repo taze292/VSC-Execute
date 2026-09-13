@@ -18,7 +18,11 @@ class ExecuteWsServer {
   private wss?: WebSocketServer;
   private clients = new Set<WebSocket>();
   private names = new Map<WebSocket, string>();
+  private proto = new Map<WebSocket, number>();
   private disposed = false;
+
+  private readonly controlPrefix = '\0VSCE:';
+  private static readonly CONTROL_PROTO = 2;
 
   start(preferredPort: number): void {
     if (this.disposed) return;
@@ -63,6 +67,8 @@ class ExecuteWsServer {
       const match = /Hello from (.+)/.exec(text);
       if (match) {
         this.names.set(socket, match[1]);
+        const protoMatch = /\[VSCE-PROTO\]\s*(\d+)/.exec(text);
+        this.proto.set(socket, protoMatch ? parseInt(protoMatch[1], 10) : 1);
         this.emitStatus();
       }
     });
@@ -70,6 +76,7 @@ class ExecuteWsServer {
     socket.on('close', () => {
       this.clients.delete(socket);
       this.names.delete(socket);
+      this.proto.delete(socket);
       this.emitStatus();
     });
 
@@ -77,14 +84,28 @@ class ExecuteWsServer {
   }
 
   send(code: string): boolean {
+    return this.broadcast(code, (socket) => socket.readyState === WebSocket.OPEN) > 0;
+  }
+
+  sendControl(key: string, value: string): boolean {
+    const message = `${this.controlPrefix}${key}=${value}`;
+    return (
+      this.broadcast(message, (socket) => {
+        const proto = this.proto.get(socket) ?? 1;
+        return socket.readyState === WebSocket.OPEN && proto >= ExecuteWsServer.CONTROL_PROTO;
+      }) > 0
+    );
+  }
+
+  private broadcast(text: string, canSend: (socket: WebSocket) => boolean): number {
     let sent = 0;
     for (const socket of this.clients) {
-      if (socket.readyState === WebSocket.OPEN) {
-        socket.send(code);
+      if (canSend(socket)) {
+        socket.send(text);
         sent += 1;
       }
     }
-    return sent > 0;
+    return sent;
   }
 
   stop(): void {
@@ -101,6 +122,7 @@ class ExecuteWsServer {
     }
     this.clients.clear();
     this.names.clear();
+    this.proto.clear();
     this.port = 0;
     this.emitStatus();
   }

@@ -8,7 +8,9 @@ import path from 'node:path';
 const port = Number(process.argv[2] || 29999);
 const url = `ws://127.0.0.1:${port}`;
 const NAME = process.argv[3] || 'Mock Executor';
+const CONTROL_LOG = process.argv[4];
 
+const CONTROL_PREFIX = '\0VSCE:';
 const outDir = path.resolve(dirname(fileURLToPath(import.meta.url)), 'received');
 mkdirSync(outDir, { recursive: true });
 
@@ -22,11 +24,19 @@ function connect() {
 
   ws.on('open', () => {
     console.log(`[mock] connected to ${url}`);
-    ws.send(`[VSC Execute] Hello from ${NAME}`);
+    ws.send(`[VSC Execute] Hello from ${NAME}\n[VSCE-PROTO] 2`);
   });
 
   ws.on('message', (data) => {
     const text = data.toString();
+
+    if (text.startsWith(CONTROL_PREFIX)) {
+      const payload = text.slice(CONTROL_PREFIX.length);
+      console.log(`[mock] control frame -> ${payload}`);
+      if (CONTROL_LOG) writeFileSync(CONTROL_LOG, payload);
+      return;
+    }
+
     const fileName = `received-${Date.now()}.lua`;
     writeFileSync(path.join(outDir, fileName), text);
     const preview = text.length > 160 ? `${text.slice(0, 160)}...` : text;

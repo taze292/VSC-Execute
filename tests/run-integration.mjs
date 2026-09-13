@@ -9,8 +9,10 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const TMP = path.join(ROOT, 'tmp-test');
 const OUT_DIR = path.join(ROOT, 'tests', 'received');
 const MOCK = path.join(ROOT, 'tests', 'mock-executor.mjs');
+const CONTROL_LOG = path.join(TMP, 'control-last.txt');
 const PORT = 32123;
 const EXPECTED = 'print("integration test ok")';
+const CONTROL_PREFIX = '\0VSCE:';
 
 rmSync(TMP, { recursive: true, force: true });
 mkdirSync(TMP, { recursive: true });
@@ -62,7 +64,7 @@ executeServer.onStatusChange = (status) => {
 console.log(`[test] starting WS server on port ${PORT}...`);
 executeServer.start(PORT);
 
-mock = spawn(process.execPath, [MOCK, String(PORT), 'Integration Test Executor'], {
+mock = spawn(process.execPath, [MOCK, String(PORT), 'Integration Test Executor', CONTROL_LOG], {
   stdio: 'inherit',
 });
 
@@ -81,6 +83,37 @@ console.log(`\n[test] connected (bound port: ${executeServer.port})`);
 console.log(`[test] executor identity: ${executorIdentity}`);
 if (String(executorIdentity).includes('Integration Test Executor') === false) {
   console.error('FAIL: executor name was not captured from the hello message.');
+  await cleanup(1);
+}
+
+async function waitForControl(expected) {
+  const deadline = Date.now() + 10000;
+  let ctl = '';
+  while (Date.now() < deadline) {
+    if (existsSync(CONTROL_LOG)) {
+      ctl = readFileSync(CONTROL_LOG, 'utf8');
+      if (ctl.includes(expected)) break;
+    }
+    await sleep(100);
+  }
+  return ctl.includes(expected);
+}
+
+console.log('\n[test] sending output=off control frame (live toggle)...');
+executeServer.sendControl('output', 'false');
+if (!(await waitForControl('output=false'))) {
+  console.error('FAIL: control-capable executor did not receive the output=off frame.');
+  await cleanup(1);
+}
+
+console.log('[test] sending output=on control frame...');
+executeServer.sendControl('output', 'true');
+if (!(await waitForControl('output=true'))) {
+  console.error('FAIL: executor did not receive the output=on frame.');
+  await cleanup(1);
+}
+if (latestReceived() && latestReceived().includes(CONTROL_PREFIX)) {
+  console.error('FAIL: control frames leaked into received scripts.');
   await cleanup(1);
 }
 

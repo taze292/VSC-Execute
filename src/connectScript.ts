@@ -11,6 +11,7 @@ const TEMPLATE = `--[[
 local PORT = {PORT}
 local URL = "ws://127.0.0.1:" .. tostring(PORT)
 local OUTPUT = {OUTPUT}
+local CONTROL_PREFIX = string.char(0) .. "VSCE:"
 local RECONNECT_DELAY = 3
 local connecting = false
 
@@ -27,7 +28,19 @@ local function logWarn(...)
 end
 
 local function handleMessage(script)
-    if type(script) ~= "string" or #script == 0 then
+    if type(script) ~= "string" then
+        return
+    end
+
+    if script:sub(1, #CONTROL_PREFIX) == CONTROL_PREFIX then
+        local key, value = script:sub(#CONTROL_PREFIX + 1):match("^(%w+)=([%w+-]+)$")
+        if key == "output" then
+            OUTPUT = value == "true"
+        end
+        return
+    end
+
+    if #script == 0 then
         return
     end
 
@@ -71,7 +84,11 @@ local function createConnection()
     log("[VSC Execute] Connected to VSCode on " .. URL)
 
     pcall(function()
-        socket:Send("[VSC Execute] Hello from " .. tostring(identifyexecutor()))
+        socket:Send(
+            "[VSC Execute] Hello from "
+                .. tostring(identifyexecutor())
+                .. "\n[VSCE-PROTO] 2"
+        )
     end)
 
     return true

@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.2.2
+
+- **Output toggle now applies live.** The extension sends a control frame over the WebSocket the moment `vscExecute.showOutput` changes (and again on every connect/reconnect), so the connect script's own `[VSC Execute] ...` messages turn on/off instantly - even for scripts installed while Output was On. Old pre-`0.2.2` connect scripts are never sent control frames, so they keep their baked-in behavior until you reinstall/copy the script once.
+
 ## 0.2.1
 
 - **Output toggle now defaults to OFF.** The connect script stays silent by default (no `[VSC Execute] Connected to VSCode...` / `Failed to compile...` messages).
