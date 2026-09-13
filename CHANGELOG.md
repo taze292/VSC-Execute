@@ -6,6 +6,7 @@
   - Windows (PowerShell): `irm https://raw.githubusercontent.com/taze292/VSC-Execute/main/install.ps1 | iex`
   - Linux/macOS: `curl -fsSL https://raw.githubusercontent.com/taze292/VSC-Execute/main/install.sh | sh`
 - The installers (`install.ps1`, `install.sh`) download the matching VSIX from the repo, check for VS Code's `code` CLI, install the extension, and clean themselves up. No dependencies required.
+- Installer/VSIX URLs use the explicit `refs/heads/main` form so they always resolve against a freshly-pushed `main` (avoids GitHub's stale raw-file 404s).
 - Manual install command still available for those who have the repo checked out.
 
 ## 0.2.9

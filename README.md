@@ -9,13 +9,13 @@ No files to download by hand — just fetch and run the installer for your platf
 **Windows** (PowerShell)
 
 ```powershell
-irm https://raw.githubusercontent.com/taze292/VSC-Execute/main/install.ps1 | iex
+irm https://raw.githubusercontent.com/taze292/VSC-Execute/refs/heads/main/install.ps1 | iex
 ```
 
 **Linux / macOS**
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/taze292/VSC-Execute/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/taze292/VSC-Execute/refs/heads/main/install.sh | sh
 ```
 
 Prefer to install by hand? From the repo root, run:

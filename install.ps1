@@ -13,7 +13,7 @@ if (Test-Path $vsix) {
 } else {
   $tmp = Join-Path $env:TEMP $vsix
   Write-Host "Downloading $vsix ..."
-  Invoke-WebRequest -Uri "https://raw.githubusercontent.com/taze292/VSC-Execute/main/$vsix" -OutFile $tmp
+  Invoke-WebRequest -Uri "https://raw.githubusercontent.com/taze292/VSC-Execute/refs/heads/main/$vsix" -OutFile $tmp
   $path = $tmp
 }
 

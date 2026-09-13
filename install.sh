@@ -17,7 +17,7 @@ else
   trap 'rm -rf "$TMP"' EXIT
   EXT="$TMP/$VSIX"
   echo "Downloading $VSIX ..."
-  curl -fsSL -o "$EXT" "https://raw.githubusercontent.com/taze292/VSC-Execute/main/$VSIX"
+  curl -fsSL -o "$EXT" "https://raw.githubusercontent.com/taze292/VSC-Execute/refs/heads/main/$VSIX"
 fi
 
 echo "Installing $VSIX ..."
