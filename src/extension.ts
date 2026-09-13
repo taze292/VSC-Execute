@@ -9,6 +9,7 @@ const CONNECT_FILE_NAME = 'VSCE-Execute.luau';
 const LUAU_EXTENSIONS = new Set(['.lua', '.luau']);
 
 let statusBar: vscode.StatusBarItem;
+let settingsBar: vscode.StatusBarItem;
 let connected = false;
 let executorName: string | undefined;
 let seenFirstStatus = false;
@@ -27,6 +28,11 @@ export function activate(context: vscode.ExtensionContext): void {
 
   statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 5);
   statusBar.command = 'vscExecute.click';
+
+  settingsBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 4);
+  settingsBar.command = 'vscExecute.setup';
+  settingsBar.text = '$(gear) Settings';
+  settingsBar.tooltip = 'VSC Execute settings: Auto-Execute, Output, Notifications';
 
   executeServer.onError = (err) => {
     notify(() => vscode.window.showErrorMessage(`VSC Execute: WebSocket server error: ${err.message}`));
@@ -239,6 +245,7 @@ export function activate(context: vscode.ExtensionContext): void {
     const editor = vscode.window.activeTextEditor;
     if (!editor || !isLuauFile(editor.document)) {
       statusBar.hide();
+      settingsBar.hide();
       return;
     }
 
@@ -251,14 +258,17 @@ export function activate(context: vscode.ExtensionContext): void {
         ? `Connected to ${executorName}`
         : `Connected on ws://127.0.0.1:${executeServer.port}`;
       statusBar.tooltip = `${who}\nClick to send "${base}" to the executor.`;
+      settingsBar.show();
     } else {
       statusBar.text = '$(circle-slash) Not Connected';
       statusBar.tooltip = 'Click to set up a WebSocket connection to your executor.';
+      settingsBar.hide();
     }
   };
 
   context.subscriptions.push(
     statusBar,
+    settingsBar,
     vscode.commands.registerCommand('vscExecute.click', async () => {
       if (connected) {
         await executeActiveFile();

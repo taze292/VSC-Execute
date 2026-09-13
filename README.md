@@ -21,7 +21,7 @@ Execute Luau/Lua scripts from VSCode directly in your Roblox executor over a loc
   - **Copy Connect Script** - copies the connect script to your clipboard so you can place it manually.
   - **Output** - toggle (off by default) whether the connect script prints its own status/error messages (`[VSC Execute] Connected to VSCode...`, `Failed to compile script...`, etc.) in the executor console. Applies immediately to connected executors - no reinstall needed. This never affects `print`/`warn` calls in scripts you run.
   - **Notifications** - toggle (on by default) the VSCode toast notifications that appear bottom-right (connected / disconnected / sent events).
-- Once the executor connects, the button reads **Execute**. Click it to send the current file's contents over the WebSocket; the executor `loadstring`s and runs it.
+- Once the executor connects, the button reads **Execute**. Click it to send the current file's contents over the WebSocket; the executor `loadstring`s and runs it. A **gear button** also appears in the status bar — click it at any time while connected to open the same settings menu (Auto-Execute, Output, Notifications, etc.) without interrupting execution. Toggles apply instantly; no reconnect needed.
 - **Multiple VSCode windows work together.** The first window you open becomes the "leader" and owns the WebSocket port; every other window becomes a "follower" that routes its Execute button through the leader. No matter which window you send from, it reaches the executor, and connection status stays in sync everywhere. If the leader window closes, another window takes over automatically and the executor reconnects on its own.
 
 ## How it works

@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.2.8
+
+- **New settings button when connected.** When an executor is connected and a Lua/Luau file is open, a **gear button** appears in the status bar (next to Execute). Click it to open the setup menu — Auto-Execute, Uninstall, Copy Connect Script, Output and Notifications toggles — without disconnecting. Toggles apply immediately; reconnect not needed. When not connected the gear button is hidden and the main button still opens the menu as before.
+
 ## 0.2.7
 
 - **Auto-Execute now scans all of `%APPDATA%`** (Local, LocalLow, and Roaming) instead of only `%LOCALAPPDATA%`, so executors that store their auto-exec folders in `Roaming` or `LocalLow` are found and installed into too (e.g. `%APPDATA%\Roaming\<Executor>\Auto-Execute`).
