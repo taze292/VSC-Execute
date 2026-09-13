@@ -12,7 +12,7 @@ const MOCK = path.join(ROOT, 'tests', 'mock-executor.mjs');
 const CONTROL_LOG = path.join(TMP, 'control-last.txt');
 const PORT = 32123;
 const EXPECTED = 'print("integration test ok")';
-const CONTROL_PREFIX = '\0VSCE:';
+const CONTROL_PREFIX = '!VSCE:';
 
 rmSync(TMP, { recursive: true, force: true });
 mkdirSync(TMP, { recursive: true });

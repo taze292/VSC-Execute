@@ -2,7 +2,7 @@
   "name": "vsc-execute",
   "displayName": "VSC Execute",
   "description": "Execute Luau/Lua scripts in your Roblox executor (Potassium) from VSCode over a local WebSocket.",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "publisher": "vsc-execute",
   "license": "MIT",
   "repository": {

@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.2.4
+
+- **Fix: connection kept dropping / "not connected".** Control frames now use a plain-text marker (`!VSCE:...`) instead of a NUL-prefixed one, so executors that choke on control characters in WebSocket frames stay connected.
+- The extension only pushes the output setting **after** the executor sends its `Hello` (guaranteeing the script's message handler is already attached), and the server no longer lets a socket dying mid-send crash the broadcast.
+- Reinstall/copy the connect script once to pick this up.
+
 ## 0.2.3
 
 - **Uninstall Auto-Execute** menu action: removes the installed connect script (`VSCE-Execute.luau`) from every auto-exec folder it finds.

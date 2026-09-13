@@ -10,7 +10,7 @@ const url = `ws://127.0.0.1:${port}`;
 const NAME = process.argv[3] || 'Mock Executor';
 const CONTROL_LOG = process.argv[4];
 
-const CONTROL_PREFIX = '\0VSCE:';
+const CONTROL_PREFIX = '!VSCE:';
 const outDir = path.resolve(dirname(fileURLToPath(import.meta.url)), 'received');
 mkdirSync(outDir, { recursive: true });
 

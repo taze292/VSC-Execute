@@ -44,7 +44,7 @@ export function activate(context: vscode.ExtensionContext): void {
       notify(() => vscode.window.showWarningMessage('VSC Execute: Executor disconnected.'));
     }
 
-    if (status.connected) {
+    if (status.connected && status.executorName) {
       executeServer.sendControl('output', outputOn() ? 'true' : 'false');
     }
 

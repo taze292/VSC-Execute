@@ -21,7 +21,7 @@ class ExecuteWsServer {
   private proto = new Map<WebSocket, number>();
   private disposed = false;
 
-  private readonly controlPrefix = '\0VSCE:';
+  private readonly controlPrefix = '!VSCE:';
   private static readonly CONTROL_PROTO = 2;
 
   start(preferredPort: number): void {
@@ -100,9 +100,12 @@ class ExecuteWsServer {
   private broadcast(text: string, canSend: (socket: WebSocket) => boolean): number {
     let sent = 0;
     for (const socket of this.clients) {
-      if (canSend(socket)) {
+      if (!canSend(socket)) continue;
+      try {
         socket.send(text);
         sent += 1;
+      } catch {
+        /* ignore sockets that die mid-send */
       }
     }
     return sent;

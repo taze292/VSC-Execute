@@ -11,7 +11,7 @@
 local PORT = 29999
 local URL = "ws://127.0.0.1:" .. tostring(PORT)
 local OUTPUT = false
-local CONTROL_PREFIX = string.char(0) .. "VSCE:"
+local CONTROL_PREFIX = "!VSCE:"
 local RECONNECT_DELAY = 3
 local connecting = false
 local onOutputChanged = nil
