@@ -88,6 +88,6 @@ task.spawn(function()
 end)
 `;
 
-export function getConnectScript(port: number, output = true): string {
+export function getConnectScript(port: number, output = false): string {
   return TEMPLATE.replaceAll('{PORT}', String(port)).replaceAll('{OUTPUT}', String(output));
 }

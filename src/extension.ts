@@ -71,7 +71,7 @@ export function activate(context: vscode.ExtensionContext): void {
   type SetupAction = 'auto-exec' | 'copy' | 'toggle-output' | 'toggle-notifications';
 
   const showSetupMenu = async (): Promise<void> => {
-    const outputOn = cfg().get<boolean>('showOutput', true);
+    const outputOn = cfg().get<boolean>('showOutput', false);
     const notifOn = cfg().get<boolean>('showNotifications', true);
 
     const items: Array<(vscode.QuickPickItem & { action: SetupAction })> = [
@@ -89,8 +89,8 @@ export function activate(context: vscode.ExtensionContext): void {
         action: 'toggle-output',
         label: outputOn ? '$(check) Output: On' : '$(mute) Output: Off',
         description: outputOn
-          ? 'Connect script logs status/errors in the executor console. Toggle off to keep it silent.'
-          : 'Connect script stays silent (no prints in the executor console). Toggle on to log again.',
+          ? 'Connect script logs its own status/errors ([VSC Execute] ...). Your scripts\' prints/warns still show.'
+          : 'Connect script stays silent. Your scripts\' prints/warns still show.',
       },
       {
         action: 'toggle-notifications',
@@ -127,7 +127,7 @@ export function activate(context: vscode.ExtensionContext): void {
   const installAutoExec = async (): Promise<void> => {
     const names = cfg().get<string[]>('autoExecFolderNames', DEFAULT_AUTO_EXEC_NAMES);
     const port = cfg().get<number>('port', 29999);
-    const output = cfg().get<boolean>('showOutput', true);
+    const output = cfg().get<boolean>('showOutput', false);
 
     const folders = findAutoExecFolders(names);
     if (folders.length === 0) {
@@ -175,7 +175,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
   const copyConnectScript = async (): Promise<void> => {
     const port = cfg().get<number>('port', 29999);
-    const output = cfg().get<boolean>('showOutput', true);
+    const output = cfg().get<boolean>('showOutput', false);
     await vscode.env.clipboard.writeText(getConnectScript(port, output));
     notify(() => vscode.window.showInformationMessage('VSC Execute: Connect script copied to clipboard.'));
   };

@@ -10,7 +10,7 @@
 
 local PORT = 29999
 local URL = "ws://127.0.0.1:" .. tostring(PORT)
-local OUTPUT = true
+local OUTPUT = false
 local RECONNECT_DELAY = 3
 local connecting = false
 

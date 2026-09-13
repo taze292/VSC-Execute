@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.2.1
+
+- **Output toggle now defaults to OFF.** The connect script stays silent by default (no `[VSC Execute] Connected to VSCode...` / `Failed to compile...` messages).
+- Clarified that the Output toggle only controls the connect script's own status messages - it NEVER suppresses `print`/`warn` calls inside scripts you run.
+
 ## 0.2.0
 
 - Setup menu toggles: **Output** (connect-script prints in the executor console, on by default) and **Notifications** (VSCode toasts, on by default).
