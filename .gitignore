@@ -1,6 +1,7 @@
 node_modules
 out
 dist
+tests/received
 *.vsix
 !vsc-execute-*.vsix
 *.log

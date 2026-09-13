@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.2.5
+
+- **All VSCode windows now share one connection.** Only the first window (the "leader") listens on the WebSocket port; every other window you open becomes a follower and routes its **Execute** button through the leader over a private IPC channel. Open as many windows as you like - the executor connects to the same pipe, and any window can send scripts with the same live connection status shown everywhere.
+- If the leader window closes, another window automatically takes over and the executor reconnects on its own - no manual setup needed.
+- The server now binds **exactly** `vscExecute.port`. If that port is taken by a non-VSC-Execute program, the extension reports an error instead of silently hopping to another port (change `vscExecute.port` to resolve it).
+
 ## 0.2.4
 
 - **Fix: connection kept dropping / "not connected".** Control frames now use a plain-text marker (`!VSCE:...`) instead of a NUL-prefixed one, so executors that choke on control characters in WebSocket frames stay connected.

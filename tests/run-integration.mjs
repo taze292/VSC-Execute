@@ -4,6 +4,7 @@ import { spawn } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import path from 'node:path';
+import WebSocketClient from 'ws';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const TMP = path.join(ROOT, 'tmp-test');
@@ -11,6 +12,7 @@ const OUT_DIR = path.join(ROOT, 'tests', 'received');
 const MOCK = path.join(ROOT, 'tests', 'mock-executor.mjs');
 const CONTROL_LOG = path.join(TMP, 'control-last.txt');
 const PORT = 32123;
+const IPC_PORT = PORT + 7;
 const EXPECTED = 'print("integration test ok")';
 const CONTROL_PREFIX = '!VSCE:';
 
@@ -53,6 +55,8 @@ await build({
 });
 
 const { executeServer } = await import(pathToFileURL(wsBundle).href);
+
+executeServer.init(path.join(TMP, 'state'));
 
 let isConnected = false;
 let executorIdentity;
@@ -134,8 +138,76 @@ while (Date.now() < receiveDeadline) {
 
 if (got.includes('integration test ok')) {
   console.log(`\nPASS: executor received the script (${got.length} bytes) and saved it to tests/received/.`);
-  await cleanup(0);
 } else {
   console.error('\nFAIL: mock executor did not receive the sent script.');
+  await cleanup(1);
+}
+
+// ---- Multi-window: a second VSCode window (follower) joins over IPC ----
+console.log('\n[test] simulating a second VSCode window (follower) joining over IPC...');
+const follower = new WebSocketClient(`ws://127.0.0.1:${IPC_PORT}`);
+let followerInfo = null;
+let followerStatus = null;
+let ackOk = false;
+
+await new Promise((resolve, reject) => {
+  const timer = setTimeout(() => reject(new Error('follower IPC handshake timed out')), 10000);
+  follower.on('open', () => {
+    follower.send(JSON.stringify({ v: 1, type: 'hello', pid: 999999, nonce: 'test-follower' }));
+  });
+  follower.on('message', (data) => {
+    const msg = JSON.parse(data.toString());
+    if (msg.type === 'hello-ack') {
+      followerInfo = msg;
+      followerStatus = followerStatus ?? { connected: msg.connected, execPort: msg.execPort };
+      clearTimeout(timer);
+      resolve();
+    } else if (msg.type === 'status') {
+      followerStatus = msg;
+    } else if (msg.type === 'ack') {
+      ackOk = msg.ok === true;
+    }
+  });
+  follower.on('error', () => reject(new Error('follower IPC connection error')));
+  follower.on('close', () => reject(new Error('follower IPC connection closed during handshake')));
+});
+
+if (!followerInfo || followerInfo.execPort !== PORT) {
+  console.error(`FAIL: follower never handshook with the leader (got ${JSON.stringify(followerInfo)}).`);
+  follower.close();
+  await cleanup(1);
+}
+if (!followerStatus || followerStatus.connected !== true) {
+  console.error(
+    `FAIL: follower never observed the executor-connected status (got ${JSON.stringify(followerStatus)}).`,
+  );
+  follower.close();
+  await cleanup(1);
+}
+console.log(`[test] follower handshook with leader (execPort=${followerInfo.execPort}, connected=${followerStatus.connected}).`);
+
+const followerScript = 'print("integration test follower ipc ok")';
+follower.send(JSON.stringify({ v: 1, type: 'execute', code: followerScript }));
+
+let followerGot = '';
+const followerDeadline = Date.now() + 10000;
+while (Date.now() < followerDeadline) {
+  const latest = latestReceived();
+  if (latest && latest.includes('follower ipc ok')) {
+    followerGot = latest;
+    break;
+  }
+  await sleep(200);
+}
+
+follower.close();
+await sleep(300);
+if (ackOk && followerGot.includes('follower ipc ok')) {
+  console.log('\nPASS: execute sent from the follower window reached the executor through the leader.');
+  await cleanup(0);
+} else {
+  console.error(
+    `FAIL: follower->leader->executor relay did not complete (ack=${ackOk}, received=${followerGot.includes('follower ipc ok')}).`,
+  );
   await cleanup(1);
 }

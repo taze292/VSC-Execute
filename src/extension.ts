@@ -23,6 +23,8 @@ function notify<T>(code: () => Thenable<T> | undefined): Thenable<T> | undefined
 }
 
 export function activate(context: vscode.ExtensionContext): void {
+  executeServer.init(context.globalStoragePath);
+
   statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 5);
   statusBar.command = 'vscExecute.click';
 
