@@ -4,13 +4,27 @@ Execute Luau/Lua scripts from VSCode directly in your Roblox executor over a loc
 
 ## Install
 
-Open a terminal in the folder containing the prebuilt VSIX (repo root) and run:
+No files to download by hand — just fetch and run the installer for your platform (it pulls the VSIX and installs it, nothing is kept on disk):
+
+**Windows** (PowerShell)
 
 ```powershell
-code --install-extension vsc-execute-0.2.9.vsix
+irm https://raw.githubusercontent.com/taze292/VSC-Execute/main/install.ps1 | iex
 ```
 
-That's it — reload VS Code if prompted. (Or install manually: Extensions → **...** → **Install from VSIX...** → pick the file.)
+**Linux / macOS**
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/taze292/VSC-Execute/main/install.sh | sh
+```
+
+Prefer to install by hand? From the repo root, run:
+
+```powershell
+code --install-extension vsc-execute-0.3.0.vsix
+```
+
+That's it — reload VS Code if prompted. (Manual GUI route: Extensions → **...** → **Install from VSIX...** → pick the file.)
 
 ## Requirements
 

@@ -1,5 +1,13 @@
 # Change Log
 
+## 0.3.0
+
+- **Fetch-and-run installers.** The README's **Install** section now leads with copy-paste one-liners that grab a platform installer and run it directly — nothing is cloned or left on disk:
+  - Windows (PowerShell): `irm https://raw.githubusercontent.com/taze292/VSC-Execute/main/install.ps1 | iex`
+  - Linux/macOS: `curl -fsSL https://raw.githubusercontent.com/taze292/VSC-Execute/main/install.sh | sh`
+- The installers (`install.ps1`, `install.sh`) download the matching VSIX from the repo, check for VS Code's `code` CLI, install the extension, and clean themselves up. No dependencies required.
+- Manual install command still available for those who have the repo checked out.
+
 ## 0.2.9
 
 - README now leads with a copy-paste **Install** section: one command (`code --install-extension vsc-execute-0.2.9.vsix`) from the repo root. No functionality changes.
