@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.2.6
+
+- No functionality changes. Documentation update:
+  - README now lists **Requirements** up front and a **Test your setup** section that points to the bundled `examples/connectivity-test.luau` - a print-only script you can Execute to confirm VS Code can reach your executor - plus a short troubleshooting table.
+  - Repackaged as `vsc-execute-0.2.6.vsix`.
+
 ## 0.2.5
 
 - **All VSCode windows now share one connection.** Only the first window (the "leader") listens on the WebSocket port; every other window you open becomes a follower and routes its **Execute** button through the leader over a private IPC channel. Open as many windows as you like - the executor connects to the same pipe, and any window can send scripts with the same live connection status shown everywhere.

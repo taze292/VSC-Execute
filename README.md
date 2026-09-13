@@ -1,6 +1,16 @@
 # VSC Execute
 
-Execute Luau/Lua scripts from VSCode directly in your Roblox executor (built for [Potassium](https://docs.potassium.pro/)) over a local WebSocket.
+Execute Luau/Lua scripts from VSCode directly in your Roblox executor over a local WebSocket. Built for [Potassium](https://docs.potassium.pro/), works with any executor that supports `WebSocket.connect`.
+
+## Requirements
+
+- **Windows** 10 or 11.
+- **VS Code** 1.85 or newer (latest recommended).
+- A **Roblox executor** that supports:
+  - `WebSocket.connect` (shared with the connect script below),
+  - running Luau scripts (the connect script's `loadstring`),
+  - auto-exec scripts **or** manual script placement (see [Quick start](#quick-start)).
+- **Roblox** running so your executor can attach.
 
 ## Features
 
@@ -11,45 +21,71 @@ Execute Luau/Lua scripts from VSCode directly in your Roblox executor (built for
   - **Copy Connect Script** - copies the connect script to your clipboard so you can place it manually.
   - **Output** - toggle (off by default) whether the connect script prints its own status/error messages (`[VSC Execute] Connected to VSCode...`, `Failed to compile script...`, etc.) in the executor console. Applies immediately to connected executors - no reinstall needed. This never affects `print`/`warn` calls in scripts you run.
   - **Notifications** - toggle (on by default) the VSCode toast notifications that appear bottom-right (connected / disconnected / sent events).
-- Once the executor connects, the button reads **Execute** (next to a lazy-loading **Execute** icon). Click it to send the current file's contents over the WebSocket; the executor `loadstring`s and runs it.
-- **Multiple VSCode windows work together.** The first window you open becomes the "leader" and owns the WebSocket port; every other VSCode window becomes a follower that routes its Execute button through the leader. No matter which window you send from, it reaches the executor, and the connection status stays in sync across all windows. If the leader window closes, another window takes over automatically and the executor reconnects on its own.
+- Once the executor connects, the button reads **Execute**. Click it to send the current file's contents over the WebSocket; the executor `loadstring`s and runs it.
+- **Multiple VSCode windows work together.** The first window you open becomes the "leader" and owns the WebSocket port; every other window becomes a "follower" that routes its Execute button through the leader. No matter which window you send from, it reaches the executor, and connection status stays in sync everywhere. If the leader window closes, another window takes over automatically and the executor reconnects on its own.
 
 ## How it works
 
-1. The extension starts a local WebSocket server (`ws://127.0.0.1:<port>`, default **29999**). Only one VSCode window runs this server at a time; other windows connect to it over a private IPC channel (`<port> + 7`) decided via a heartbeat file in the extension's global storage.
+1. The extension starts a local WebSocket server (`ws://127.0.0.1:<port>`, default **29999**). Only one VSCode window runs this server at a time; other windows connect to it over a private IPC channel (`<port> + 7`), hand-picked via a heartbeat file in global storage.
 2. The connect script (installed into an auto-exec folder or copied manually) makes the executor connect to that server when a game loads, using Lua's `WebSocket.connect`.
 3. Clicking **Execute** sends the text of the active file as a single WebSocket message; the connect script `loadstring`s it on the executor side. From a follower window, the script is relayed to the leader first, which forwards it to the executor.
 
-## Install & run from source
+## Install
+
+The easiest way is the prebuilt VSIX:
+
+1. Grab `vsc-execute-<version>.vsix` from the repo root.
+2. In VS Code, open **Extensions** (`Ctrl+Shift+X`), click **...** (**Views and More Actions**) and pick **Install from VSIX...**.
+3. Select the downloaded file. Reload VS Code if prompted.
+
+Or build from source:
 
 ```powershell
 npm install
+npm run package   # produces vsc-execute-<version>.vsix in the repo root
 ```
 
-Press **F5** in VSCode to launch the Extension Development Host (the `npm: watch` build task runs automatically).
+For development, press **F5** to launch the Extension Development Host (the `npm: watch` build task runs automatically).
 
-To build a `.vsix`:
-
-```powershell
-npm run package
-```
-
-> A prebuilt `vsc-execute-<version>.vsix` is committed in the repository root, so you can grab it and use `Extensions: Install from VSIX...` instead of building yourself.
-
-## Usage
+## Quick start
 
 1. Open a `.lua` / `.luau` file. The status bar button appears (bottom left, shows **Not Connected**).
 2. Click it and pick **Auto-Execute**. The extension installs `VSCE-Execute.luau` into each auto-exec folder found under `%LOCALAPPDATA%`.
 3. Open Roblox and inject/attach your executor so it runs its auto-exec scripts.
-4. The button turns into **Execute** - click it to run your script. Editing is not needed; the unsaved buffer is what gets sent.
+4. The button turns into **Execute** - click it to run your script. The unsaved buffer is what gets sent.
 
 > No auto-exec folder found? Use **Copy Connect Script** and save the script to your executor's auto-exec location manually.
+
+## Test your setup
+
+Once the button reads **Execute**, verify the whole round trip with the bundled test script:
+
+1. Open [`examples/connectivity-test.luau`](examples/connectivity-test.luau) in VS Code.
+2. Click the bottom-left **Execute** button.
+3. Open the console (**F9** in Roblox, or your executor's console) and look for:
+
+   ```
+   [VSC Execute] Connectivity test started
+   [VSC Execute] Executor:  <your executor>
+   [VSC Execute] PASSED - VS Code can reach this executor.
+   ```
+
+   If **PASSED** shows up, VSC Execute can send scripts to your executor. It only prints; it never touches the game.
+
+## Troubleshooting
+
+| Symptom | What to do |
+| --- | --- |
+| Button still reads **Not Connected** after joining a game | Run the setup menu and pick **Auto-Execute** (or **Copy Connect Script**), then leave and rejoin the game. |
+| Executor says `Could not reach VSCode at ws://127.0.0.1:29999` | VS Code isn't running with the extension, or the port doesn't match `vscExecute.port`. Recheck the connect script's `PORT`. |
+| Connect script installed but nothing connects | Your executor may not support `WebSocket.connect`; VSC Execute needs that API. |
+| Test script runs but prints nothing | `print` output hides in some executors - show **Output** toggle in the setup menu, or switch on the executor's own console. |
 
 ## Configuration
 
 | Setting | Default | Description |
 | --- | --- | --- |
-| `vscExecute.port` | `29999` | Port the leader window's WebSocket server listens on. Binds exactly this port (freed port + 7 is used internally for window-to-window IPC). If it's taken by another program, the extension shows an error - change this setting to resolve. Update the connect script (reinstall/copy) after changing it. |
+| `vscExecute.port` | `29999` | Port the leader window's WebSocket server listens on. Binds exactly this port (`port + 7` is used internally for window-to-window IPC). If it's taken by another program, the extension shows an error - change this setting to resolve. Update the connect script (reinstall/copy) after changing it. |
 | `vscExecute.autoExecFolderNames` | `["Auto-Execute", ...]` | Folder names (case-insensitive) matched while scanning `%LOCALAPPDATA%`. |
 | `vscExecute.showOutput` | `false` | Whether the connect script prints its own status/error messages (`[VSC Execute] ...`) in the executor console. Applies live to connected executors (reinstall the connect script once after upgrading to get live toggling). Your scripts' `print`/`warn` calls are never suppressed. |
 | `vscExecute.showNotifications` | `true` | Whether VSCode shows toast notifications (bottom-right) for connect/disconnect and sends. Toggle from the setup menu. |
