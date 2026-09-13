@@ -35,7 +35,7 @@ through the real UI.
 5. While the mock is connected, try the setup menu too: the button only shows the menu when
    no executor is connected, so kill the mock (Ctrl+C in its terminal) *first*, then click
    the **Not Connected** button:
-   - **Auto-Execute** - scans `%LOCALAPPDATA%` for auto-exec folders and installs
+   - **Auto-Execute** - scans all of `%APPDATA%` for auto-exec folders and installs
      `VSCE-Execute.luau` into each; VSCode reports how many folders it wrote to.
    - **Copy Connect Script** - copies the connect script (same as `tests/connect-script.luau`)
      to your clipboard.

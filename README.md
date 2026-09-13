@@ -16,7 +16,7 @@ Execute Luau/Lua scripts from VSCode directly in your Roblox executor over a loc
 
 - A status bar button in the **bottom left** of VSCode, visible whenever a `.lua` / `.luau` file is open.
 - While no executor is connected the button reads **Not Connected**. Click it to open a setup menu:
-  - **Auto-Execute** - scans `%LOCALAPPDATA%` (bounded) for folders named `Auto-Execute` (or the names in the `vscExecute.autoExecFolderNames` setting) and installs the connect script into every match.
+  - **Auto-Execute** - scans all of `%APPDATA%` (Local, LocalLow, and Roaming - bounded) for folders named `Auto-Execute` (or the names in the `vscExecute.autoExecFolderNames` setting) and installs the connect script into every match.
   - **Uninstall Auto-Execute** - removes the installed connect script (`VSCE-Execute.luau`) from every auto-exec folder it finds (it stops running the next time the game loads).
   - **Copy Connect Script** - copies the connect script to your clipboard so you can place it manually.
   - **Output** - toggle (off by default) whether the connect script prints its own status/error messages (`[VSC Execute] Connected to VSCode...`, `Failed to compile script...`, etc.) in the executor console. Applies immediately to connected executors - no reinstall needed. This never affects `print`/`warn` calls in scripts you run.
@@ -50,7 +50,7 @@ For development, press **F5** to launch the Extension Development Host (the `npm
 ## Quick start
 
 1. Open a `.lua` / `.luau` file. The status bar button appears (bottom left, shows **Not Connected**).
-2. Click it and pick **Auto-Execute**. The extension installs `VSCE-Execute.luau` into each auto-exec folder found under `%LOCALAPPDATA%`.
+2. Click it and pick **Auto-Execute**. The extension installs `VSCE-Execute.luau` into each auto-exec folder found under all of `%APPDATA%` (Local, LocalLow, and Roaming).
 3. Open Roblox and inject/attach your executor so it runs its auto-exec scripts.
 4. The button turns into **Execute** - click it to run your script. The unsaved buffer is what gets sent.
 
@@ -86,7 +86,7 @@ Once the button reads **Execute**, verify the whole round trip with the bundled 
 | Setting | Default | Description |
 | --- | --- | --- |
 | `vscExecute.port` | `29999` | Port the leader window's WebSocket server listens on. Binds exactly this port (`port + 7` is used internally for window-to-window IPC). If it's taken by another program, the extension shows an error - change this setting to resolve. Update the connect script (reinstall/copy) after changing it. |
-| `vscExecute.autoExecFolderNames` | `["Auto-Execute", ...]` | Folder names (case-insensitive) matched while scanning `%LOCALAPPDATA%`. |
+| `vscExecute.autoExecFolderNames` | `["Auto-Execute", ...]` | Folder names (case-insensitive) matched while scanning all of `%APPDATA%` (Local, LocalLow, and Roaming). |
 | `vscExecute.showOutput` | `false` | Whether the connect script prints its own status/error messages (`[VSC Execute] ...`) in the executor console. Applies live to connected executors (reinstall the connect script once after upgrading to get live toggling). Your scripts' `print`/`warn` calls are never suppressed. |
 | `vscExecute.showNotifications` | `true` | Whether VSCode shows toast notifications (bottom-right) for connect/disconnect and sends. Toggle from the setup menu. |
 

@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.2.7
+
+- **Auto-Execute now scans all of `%APPDATA%`** (Local, LocalLow, and Roaming) instead of only `%LOCALAPPDATA%`, so executors that store their auto-exec folders in `Roaming` or `LocalLow` are found and installed into too (e.g. `%APPDATA%\Roaming\<Executor>\Auto-Execute`).
+- Scan depth bumped to match the wider root; Windows Store app data (`%APPDATA%\Local\Packages`) is skipped to keep the scan fast and bounded.
+- Repackaged as `vsc-execute-0.2.7.vsix`.
+
 ## 0.2.6
 
 - No functionality changes. Documentation update:

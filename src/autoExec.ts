@@ -41,13 +41,14 @@ const SKIPPED_DIRS = new Set([
   'yarn',
   'pip',
   'Programs',
+  'Packages',
 ]);
 
-const MAX_DEPTH = 4;
+const MAX_DEPTH = 5;
 const MAX_SCAN = 4000;
 
 export function findAutoExecFolders(folderNames: string[]): string[] {
-  const root = process.env.LOCALAPPDATA || path.join(os.homedir(), 'AppData', 'Local');
+  const root = process.env.APPDATA ? path.dirname(process.env.APPDATA) : path.join(os.homedir(), 'AppData');
   if (!root || !fs.existsSync(root)) {
     return [];
   }

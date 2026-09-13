@@ -86,7 +86,7 @@ export function activate(context: vscode.ExtensionContext): void {
       {
         action: 'auto-exec',
         label: '$(plug) Auto-Execute',
-        description: 'Scan LocalAppData for auto-exec folders and install the connect script',
+        description: 'Scan all of AppData for auto-exec folders and install the connect script',
       },
       {
         action: 'uninstall-auto-exec',
@@ -149,7 +149,7 @@ export function activate(context: vscode.ExtensionContext): void {
     if (folders.length === 0) {
       const action = await notify(() =>
         vscode.window.showWarningMessage(
-          'VSC Execute: No auto-exec folders found in LocalAppData.',
+          'VSC Execute: No auto-exec folders found in AppData.',
           'Copy Connect Script',
         ),
       );
