@@ -1,0 +1,85 @@
+{
+  "name": "vsc-execute",
+  "displayName": "VSC Execute",
+  "description": "Execute Luau/Lua scripts in your Roblox executor (Potassium) from VSCode over a local WebSocket.",
+  "version": "0.1.0",
+  "publisher": "vsc-execute",
+  "license": "MIT",
+  "preview": true,
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "roblox",
+    "luau",
+    "lua",
+    "executor",
+    "websocket",
+    "potassium"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "vscExecute.click",
+        "title": "VSC Execute: Execute / Set Up"
+      },
+      {
+        "command": "vscExecute.execute",
+        "title": "VSC Execute: Execute Current Script"
+      },
+      {
+        "command": "vscExecute.setup",
+        "title": "VSC Execute: Set Up Connection"
+      }
+    ],
+    "configuration": {
+      "title": "VSC Execute",
+      "properties": {
+        "vscExecute.port": {
+          "type": "number",
+          "default": 29999,
+          "description": "Local port the WebSocket server listens on. The executor must connect here (used in the auto-exec connect script)."
+        },
+        "vscExecute.autoExecFolderNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "Auto-Execute",
+            "Auto Execute",
+            "AutoExec",
+            "Auto-Exec",
+            "Auto-Execution",
+            "Autoexecute"
+          ],
+          "description": "Folder names (checked case-insensitively) to scan for inside %LOCALAPPDATA% when installing the connect script."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "node build.mjs",
+    "watch": "node build.mjs --watch",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "node tests/run-integration.mjs",
+    "package": "npm run compile && vsce package --no-dependencies"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/vscode": "^1.85.0",
+    "@types/ws": "^8.5.10",
+    "@vscode/vsce": "^2.29.0",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.5.4",
+    "ws": "^8.18.0"
+  }
+}
